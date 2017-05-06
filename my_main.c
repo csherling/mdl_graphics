@@ -53,6 +53,7 @@ void my_main() {
 
   int i;
   struct matrix *tmp;
+  struct matrix *edges;
   screen s;
   color g;
 
@@ -66,7 +67,10 @@ void my_main() {
   c.blue = 0;
   
   tmp = new_matrix(4, 1000);
+  edges = new_matrix(4, 1000);
   clear_screen( s );
+
+  int ax, dgs, theta;
 
   for (i=0;i<lastop;i++) {  
     switch (op[i].opcode) {
@@ -77,22 +81,22 @@ void my_main() {
       pop(systems);	    
       break;
     case MOVE:
-      tmp = make_translate(op[lastop].op.box.d0[0],
-			   op[lastop].op.box.d0[1],
-			   op[lastop].op.box.d0[2]
+      tmp = make_translate(op[lastop].op.move.d[0],
+			   op[lastop].op.move.d[1],
+			   op[lastop].op.move.d[2]
 			   );
       matrix_mult(peek(systems), tmp);
       copy_matrix(tmp, peek(systems));
       break;
     case ROTATE:
-      int dir = op[lastop].op.rotate.axis;
-      int dgs = op[lastop].op.rotate.degrees;
-      int theta = dgs * (M_PI / 180);
+      ax = op[lastop].op.rotate.axis;
+      dgs = op[lastop].op.rotate.degrees;
+      theta = dgs * (M_PI / 180);
 
-      if(dir==0){
+      if(ax==0){
 	tmp = make_rotX(theta);
       }
-      else if(dir==1){
+      else if(ax==1){
 	tmp = make_rotY(theta);
       }
       else{
@@ -102,9 +106,9 @@ void my_main() {
       copy_matrix(tmp, peek(systems));
       break;
     case SCALE:
-      tmp = make_scale(op[lastop].op.box.d0[0],
-		       op[lastop].op.box.d0[1],
-		       op[lastop].op.box.d0[2]
+      tmp = make_scale(op[lastop].op.scale.d[0],
+		       op[lastop].op.scale.d[1],
+		       op[lastop].op.scale.d[2]
 		       );      
       matrix_mult(peek(systems), tmp);
       copy_matrix(tmp, peek(systems));
@@ -124,9 +128,9 @@ void my_main() {
       break;
     case SPHERE:
       add_sphere( edges,
-		  op[lastop].op.box.d0[0],
-		  op[lastop].op.box.d0[1],
-		  op[lastop].op.box.d0[2],
+		  op[lastop].op.sphere.d[0],
+		  op[lastop].op.sphere.d[1],
+		  op[lastop].op.sphere.d[2],
 		  op[lastop].op.sphere.r,
 		  step
 		  );
@@ -136,11 +140,11 @@ void my_main() {
       break;
     case TORUS:
       add_torus( edges,
-		 op[lastop].op.box.d0[0],
-		 op[lastop].op.box.d0[1],
-		 op[lastop].op.box.d0[2],
-		 op[lastop].op.sphere.r0,
-		 op[lastop].op.sphere.r1,
+		 op[lastop].op.torus.d[0],
+		 op[lastop].op.torus.d[1],
+		 op[lastop].op.torus.d[2],
+		 op[lastop].op.torus.r0,
+		 op[lastop].op.torus.r1,
 		 step);
       matrix_mult(peek(systems), edges);
       draw_polygons(edges, s, c);
@@ -148,19 +152,19 @@ void my_main() {
       break;
     case LINE:
       add_edge(edges,
-	       op[lastop].op.box.p0[0],
-	       op[lastop].op.box.p0[1],
-	       op[lastop].op.box.p0[2],
-	       op[lastop].op.box.p1[0],
-	       op[lastop].op.box.p1[1],
-	       op[lastop].op.box.p1[2]
+	       op[lastop].op.line.p0[0],
+	       op[lastop].op.line.p0[1],
+	       op[lastop].op.line.p0[2],
+	       op[lastop].op.line.p1[0],
+	       op[lastop].op.line.p1[1],
+	       op[lastop].op.line.p1[2]
 	       );      
-      matrix_mult(stack->data[stack->top],edges);
-      draw_edges(edges, s, c);
+      matrix_mult(peek(systems),edges);
+      draw_lines(edges, s, c);
       edges->lastcol = 0;
       break;
     case SAVE:
-      save_extension(s, op[loastop].op.save.p);
+      save_extension(s, op[lastop].op.save.p->name);
       break;
     case DISPLAY:
       display( s );
