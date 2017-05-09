@@ -55,44 +55,62 @@ void my_main() {
   struct matrix *tmp;
   struct matrix *edges;
   screen s;
-  color g;
 
   struct stack *systems = new_stack();
 
   double step = 0.1;
   
   color c;
-  c.red = 0;
-  c.green = 0;
-  c.blue = 0;
+  c.red = 128;
+  c.green = 128;
+  c.blue = 128;
   
   tmp = new_matrix(4, 1000);
   edges = new_matrix(4, 1000);
   clear_screen( s );
 
-  int ax, dgs, theta;
+  ident(edges);
+  
+  printf("Hello 1\n");
+  
+  double ax, dgs, theta;
+  ax = 0;
+  dgs = 0;
+  theta = 0;
 
+  char * nem;
+  nem = (char *)malloc(100);
+
+  SYMTAB * tem;
+  
   for (i=0;i<lastop;i++) {  
     switch (op[i].opcode) {
     case PUSH:
       push(systems);
+      printf("Hello Push\n");
       break;
     case POP:
-      pop(systems);	    
+      pop(systems);
+      printf("Hello Pop\n");
       break;
     case MOVE:
-      tmp = make_translate(op[lastop].op.move.d[0],
-			   op[lastop].op.move.d[1],
-			   op[lastop].op.move.d[2]
+      tmp = make_translate(op[i].op.move.d[0],
+			   op[i].op.move.d[1],
+			   op[i].op.move.d[2]
 			   );
       matrix_mult(peek(systems), tmp);
       copy_matrix(tmp, peek(systems));
+      printf("Hello Move\n");
       break;
     case ROTATE:
-      ax = op[lastop].op.rotate.axis;
-      dgs = op[lastop].op.rotate.degrees;
+      ax = op[i].op.rotate.axis;
+      dgs = op[i].op.rotate.degrees;
       theta = dgs * (M_PI / 180);
-
+      
+      printf("ax %lf \n", ax);
+      printf("dgs %lf \n", dgs);
+      printf("theta %lf \n", theta);
+      
       if(ax==0){
 	tmp = make_rotX(theta);
       }
@@ -104,67 +122,79 @@ void my_main() {
       }
       matrix_mult(peek(systems), tmp);
       copy_matrix(tmp, peek(systems));
+      printf("Hello Rotate\n");
       break;
     case SCALE:
-      tmp = make_scale(op[lastop].op.scale.d[0],
-		       op[lastop].op.scale.d[1],
-		       op[lastop].op.scale.d[2]
+      tmp = make_scale(op[i].op.scale.d[0],
+		       op[i].op.scale.d[1],
+		       op[i].op.scale.d[2]
 		       );      
       matrix_mult(peek(systems), tmp);
       copy_matrix(tmp, peek(systems));
+      printf("Hello Scale\n");
       break;
     case BOX:
       add_box(edges,
-	      op[lastop].op.box.d0[0],
-	      op[lastop].op.box.d0[1],
-	      op[lastop].op.box.d0[2],
-	      op[lastop].op.box.d1[0],
-	      op[lastop].op.box.d1[1],
-	      op[lastop].op.box.d1[2]
+	      op[i].op.box.d0[0],
+	      op[i].op.box.d0[1],
+	      op[i].op.box.d0[2],
+	      op[i].op.box.d1[0],
+	      op[i].op.box.d1[1],
+	      op[i].op.box.d1[2]
 	      );
       matrix_mult(peek(systems), edges);
       draw_polygons(edges, s, c);
       edges->lastcol = 0;
+      printf("Hello Box\n");
       break;
     case SPHERE:
       add_sphere( edges,
-		  op[lastop].op.sphere.d[0],
-		  op[lastop].op.sphere.d[1],
-		  op[lastop].op.sphere.d[2],
-		  op[lastop].op.sphere.r,
+		  op[i].op.sphere.d[0],
+		  op[i].op.sphere.d[1],
+		  op[i].op.sphere.d[2],
+		  op[i].op.sphere.r,
 		  step
 		  );
       matrix_mult(peek(systems), edges);
       draw_polygons(edges, s, c);
       edges->lastcol = 0;
+      printf("Hello Sphere\n");
       break;
     case TORUS:
       add_torus( edges,
-		 op[lastop].op.torus.d[0],
-		 op[lastop].op.torus.d[1],
-		 op[lastop].op.torus.d[2],
-		 op[lastop].op.torus.r0,
-		 op[lastop].op.torus.r1,
+		 op[i].op.torus.d[0],
+		 op[i].op.torus.d[1],
+		 op[i].op.torus.d[2],
+		 op[i].op.torus.r0,
+		 op[i].op.torus.r1,
 		 step);
       matrix_mult(peek(systems), edges);
       draw_polygons(edges, s, c);
       edges->lastcol = 0;
+      printf("Hello Torus\n");
       break;
     case LINE:
       add_edge(edges,
-	       op[lastop].op.line.p0[0],
-	       op[lastop].op.line.p0[1],
-	       op[lastop].op.line.p0[2],
-	       op[lastop].op.line.p1[0],
-	       op[lastop].op.line.p1[1],
-	       op[lastop].op.line.p1[2]
+	       op[i].op.line.p0[0],
+	       op[i].op.line.p0[1],
+	       op[i].op.line.p0[2],
+	       op[i].op.line.p1[0],
+	       op[i].op.line.p1[1],
+	       op[i].op.line.p1[2]
 	       );      
       matrix_mult(peek(systems),edges);
       draw_lines(edges, s, c);
       edges->lastcol = 0;
+      printf("Hello Line\n");
       break;
     case SAVE:
-      save_extension(s, op[lastop].op.save.p->name);
+      printf("Hello Save1\n");
+      tem = op[i].op.save.p;
+      printf("Hello Save2\n");
+      nem = tem->name;
+      printf("Hello Save3\n");
+      save_extension(s, nem);
+      printf("Hello Save4\n");
       break;
     case DISPLAY:
       display( s );
